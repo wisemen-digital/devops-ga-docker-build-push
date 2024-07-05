@@ -26,6 +26,9 @@ inputs:
   tag:
     description: Image tag (fallback to branch name)
     required: false
+  platforms:
+    description: List of platforms (architectures, comma separated, defaults to `linux/amd64`)
+    required: false
 outputs:
   digest:
     description: Result image digest
@@ -44,9 +47,12 @@ runs:
         echo "registry=${{ inputs.container-registry || 'docker.io' }}" >> "$GITHUB_ENV"
         echo "image=`basename ${{ inputs.image || github.repository }}`" >> "$GITHUB_ENV"
         echo "tag=`echo '${{ inputs.tag || github.ref_name }}' | sed 's/\//_/g'`" >> "$GITHUB_ENV"
+        echo "platforms=${{ inputs.platforms || 'linux/amd64' }}" >> "$GITHUB_ENV"
         echo "timestamp=`date +'%Y-%m-%dT%H:%M:%S'`" >> "$GITHUB_ENV"
     - name: Checkout
       uses: actions/checkout@v4
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
     # Authenticate
@@ -69,6 +75,7 @@ runs:
       with:
         context: .
         file: ./Dockerfile
+        platforms: ${{ env.platforms }}
         push: true
         tags: ${{ env.registry }}/${{ env.image }}:${{ env.tag }}
         cache-from: type=gha

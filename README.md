@@ -29,6 +29,9 @@ inputs:
   tag:
     description: Image tag (fallback to branch name)
     required: false
+  platforms:
+    description: List of platforms (architectures, comma separated, defaults to `linux/amd64`)
+    required: false
 ```
 
 ## Output
