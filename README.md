@@ -32,6 +32,9 @@ inputs:
   platforms:
     description: List of platforms (architectures, comma separated, defaults to `linux/amd64`)
     required: false
+  target:
+    description: Docker target (build-stage) you want to build.
+    required: false
 ```
 
 ## Output

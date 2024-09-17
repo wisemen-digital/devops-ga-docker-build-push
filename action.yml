@@ -29,6 +29,9 @@ inputs:
   platforms:
     description: List of platforms (architectures, comma separated, defaults to `linux/amd64`)
     required: false
+  target:
+    description: Docker target (build-stage) you want to build.
+    required: false
 outputs:
   digest:
     description: Result image digest
@@ -80,6 +83,7 @@ runs:
         tags: ${{ env.registry }}/${{ env.image }}:${{ env.tag }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+        target: ${{ inputs.target }}
         build-args: |
           BUILD_COMMIT=${{ github.sha }}
           BUILD_NUMBER=${{ github.run_number }}
