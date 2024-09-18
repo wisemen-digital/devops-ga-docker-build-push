@@ -23,6 +23,9 @@ inputs:
   image:
     description: Image name (fallback to repository name)
     required: false
+  image-suffix:
+    description: Image suffix (fallback to empty)
+    required: false
   tag:
     description: Image tag (fallback to branch name)
     required: false
@@ -31,6 +34,9 @@ inputs:
     required: false
   target:
     description: Docker target (build-stage) you want to build.
+    required: false
+  build-arguments:
+    description: Extra build arguments
     required: false
 outputs:
   digest:
@@ -49,6 +55,7 @@ runs:
       run: |
         echo "registry=${{ inputs.container-registry || 'docker.io' }}" >> "$GITHUB_ENV"
         echo "image=`basename ${{ inputs.image || github.repository }}`" >> "$GITHUB_ENV"
+        if [ -n "${{ inputs.image-suffix }}" ]; then  echo "image_suffix=-${{ inputs.image-suffix }}" >> "$GITHUB_ENV"; fi
         echo "tag=`echo '${{ inputs.tag || github.ref_name }}' | sed 's/\//_/g'`" >> "$GITHUB_ENV"
         echo "platforms=${{ inputs.platforms || 'linux/amd64' }}" >> "$GITHUB_ENV"
         echo "timestamp=`date +'%Y-%m-%dT%H:%M:%S'`" >> "$GITHUB_ENV"
@@ -80,11 +87,12 @@ runs:
         file: ./Dockerfile
         platforms: ${{ env.platforms }}
         push: true
-        tags: ${{ env.registry }}/${{ env.image }}:${{ env.tag }}
+        tags: ${{ env.registry }}/${{ env.image }}${{ env.image_suffix }}:${{ env.tag }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
         target: ${{ inputs.target }}
         build-args: |
+          ${{ inputs.build-arguments }}
           BUILD_COMMIT=${{ github.sha }}
           BUILD_NUMBER=${{ github.run_number }}
           BUILD_TIMESTAMP=${{ env.timestamp }}
