@@ -38,7 +38,7 @@ outputs:
     value: ${{ steps.build.outputs.digest }}
   manifest:
     description: Image manifest (registry + image + tag)
-    value: ${{ env.tags }}
+    value: ${{ env.registry }}/${{ env.image }}:${{ env.tag }}
 
 runs:
   using: composite
@@ -47,12 +47,9 @@ runs:
     - name: Prepare environment
       shell: bash
       run: |
-        registry=${{ inputs.container-registry || 'docker.io' }}
-        image=`basename ${{ inputs.image || github.repository }}`
-
-        echo "registry=${registry}" >> "$GITHUB_ENV"
-        echo "tags=`echo '${{ inputs.tags || github.ref_name }}' | \
-          sed "s/\//_/g;s/[^,]*/${registry}\/${image}${image_suffix}:&/g"`" >> "$GITHUB_ENV"
+        echo "registry=${{ inputs.container-registry || 'docker.io' }}" >> "$GITHUB_ENV"
+        echo "image=`basename ${{ inputs.image || github.repository }}`" >> "$GITHUB_ENV"
+        echo "tag=`echo '${{ inputs.tags || github.ref_name }}' | sed 's/\//_/g'`" >> "$GITHUB_ENV"
         echo "platforms=${{ inputs.platforms || 'linux/amd64' }}" >> "$GITHUB_ENV"
         echo "timestamp=`date +'%Y-%m-%dT%H:%M:%S'`" >> "$GITHUB_ENV"
     - name: Checkout
@@ -83,7 +80,7 @@ runs:
         file: ./Dockerfile
         platforms: ${{ env.platforms }}
         push: true
-        tags: ${{ env.tags }}
+        tags: ${{ env.registry }}/${{ env.image }}:${{ env.tag }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
         target: ${{ inputs.target }}
